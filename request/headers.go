@@ -1,20 +1,25 @@
 package request
 
-import "github.com/Edward-Alphonse/saywo_pkg/utils"
+import (
+	"encoding/json"
+)
 
-type Headers struct {
-	Authorization string `json:"authorization"`
+type Mapable interface {
+	ToMap() map[string]any
 }
 
-func (h *Headers) JWT() string {
-	return h.parseBearerAuth()
-}
+type Parameter struct{}
 
-func (h *Headers) parseBearerAuth() (token string) {
-	const prefix = "Bearer "
-	auth := h.Authorization
-	if len(auth) < len(prefix) || !utils.EqualFold(auth[:len(prefix)], prefix) {
-		return ""
+func (p Parameter) ToMap() map[string]any {
+	data := make(map[string]any)
+	bytes, err := json.Marshal(p)
+	if err != nil {
+		return data
 	}
-	return auth[len(prefix):]
+
+	err = json.Unmarshal(bytes, &data)
+	if err != nil {
+		return data
+	}
+	return data
 }

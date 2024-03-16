@@ -9,15 +9,18 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-type Request[T any] struct {
+type BaseParameter Mapable
+type BaseHeader Mapable
+
+type Request[P BaseParameter, H BaseHeader] struct {
 	ctx *gin.Context
 
-	headers *Headers
-	params  *T
+	headers *H
+	params  *P
 }
 
-func NewRequest[T any](context *gin.Context) *Request[T] {
-	r := &Request[T]{
+func NewRequest[P BaseParameter, H BaseHeader](context *gin.Context) *Request[P, H] {
+	r := &Request[P, H]{
 		ctx: context,
 	}
 	r.bindHeaders()
@@ -25,8 +28,8 @@ func NewRequest[T any](context *gin.Context) *Request[T] {
 	return r
 }
 
-func (r *Request[T]) bindParams() {
-	params := new(T)
+func (r *Request[P, H]) bindParams() {
+	params := new(P)
 
 	// 绑定body 中json参数
 	method := strings.ToLower(r.ctx.Request.Method)
@@ -56,8 +59,8 @@ func (r *Request[T]) bindParams() {
 	})
 }
 
-func (r *Request[T]) bindHeaders() {
-	headers := &Headers{}
+func (r *Request[P, H]) bindHeaders() {
+	headers := new(H)
 	err := r.ctx.ShouldBindHeader(headers)
 	if err != nil {
 		logs.Error("bind request headers failed", map[string]any{
@@ -68,14 +71,10 @@ func (r *Request[T]) bindHeaders() {
 	r.headers = headers
 }
 
-func (r *Request[T]) GetParams() *T {
+func (r *Request[P, H]) GetParams() *P {
 	return r.params
 }
 
-func (r *Request[T]) GetHeaders() *Headers {
+func (r *Request[T, H]) GetHeaders() *H {
 	return r.headers
-}
-
-func (r *Request[T]) GetVersion() string {
-	return r.ctx.Param("version")
 }
