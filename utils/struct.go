@@ -1,27 +1,34 @@
 package utils
 
-import "encoding/json"
+import (
+	"bytes"
+	"encoding/json"
+)
 
 func Trans2Map(model any) (map[string]any, error) {
-	bytes, err := json.Marshal(model)
+	data, err := json.Marshal(model)
 	if err != nil {
 		return nil, err
 	}
-	dic := make(map[string]any)
-	err = json.Unmarshal(bytes, &dic)
+	dict := make(map[string]any)
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber()
+	err = d.Decode(&dict)
 	if err != nil {
 		return nil, err
 	}
-	return dic, nil
+	return dict, nil
 }
 
 func Trans2Struct[T any](dict map[string]any) (*T, error) {
-	bytes, err := json.Marshal(dict)
+	data, err := json.Marshal(dict)
 	if err != nil {
 		return nil, err
 	}
 	model := new(T)
-	err = json.Unmarshal(bytes, &model)
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber()
+	err = d.Decode(&model)
 	if err != nil {
 		return nil, err
 	}
