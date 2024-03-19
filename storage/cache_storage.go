@@ -2,8 +2,7 @@ package storage
 
 import (
 	"context"
-	"errors"
-	"github.com/Edward-Alphonse/saywo_pkg/logs"
+	"github.com/pkg/errors"
 )
 
 type CacheStoreage struct {
@@ -66,14 +65,9 @@ func (s *CacheStoreage) Get(ctx context.Context, key uint64) (any, error) {
 	}
 	model, err := s.dbStorage.Get(ctx, key)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "CacheStoreage.dbStorage.Get failed")
 	}
-	err = s.Set(ctx, key, model)
-	if err != nil {
-		logs.Warn("缓存同步失败", map[string]any{
-			"error": err.Error(),
-		})
-	}
+	s.Set(ctx, key, model)
 	return model, nil
 }
 

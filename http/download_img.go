@@ -43,23 +43,11 @@ func (l *DownloadImgLoader) Load() error {
 		format = "webp"
 	}
 
-	//url, _ := url2.Parse(l.imgUrl)
-	//fileName := path.Base(url.Path)
-	//destination := "./" + fileName + "." + format
-	//file, err := os.Create(destination)
-	//if err != nil {
-	//	return errors.Wrap(err, "DownloadImgLoader load failed")
-	//}
-	//defer file.Close()
-
 	// 将图片数据写入文件
-	//_, err = io.Copy(file, response.Body)
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return errors.Wrap(err, "DownloadImgLoader load failed")
 	}
-	//fmt.Printf("图片已成功下载到 %s\n", destination)
-	//l.imgPath = destination
 	l.imgData = body
 	l.format = format
 	return nil

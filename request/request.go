@@ -3,10 +3,9 @@ package request
 import (
 	"strings"
 
-	"encoding/json"
-	"github.com/Edward-Alphonse/saywo_pkg/logs"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/pkg/errors"
 )
 
 type BaseParameter Mapable
@@ -23,12 +22,23 @@ func NewRequest[P BaseParameter, H BaseHeader](context *gin.Context) *Request[P,
 	r := &Request[P, H]{
 		ctx: context,
 	}
-	r.bindHeaders()
-	r.bindParams()
 	return r
 }
 
-func (r *Request[P, H]) bindParams() {
+func ParseParams[P BaseParameter, H BaseHeader](context *gin.Context) (*Request[P, H], error) {
+	req := NewRequest[P, H](context)
+	err := req.bindHeaders()
+	if err != nil {
+		return nil, errors.Wrap(err, "request.ParseParams.bindHeaders failed")
+	}
+	err = req.bindParams()
+	if err != nil {
+		return nil, errors.Wrap(err, "request.ParseParams.bindParams failed")
+	}
+	return req, nil
+}
+
+func (r *Request[P, H]) bindParams() error {
 	params := new(P)
 
 	// 绑定body 中json参数
@@ -36,39 +46,28 @@ func (r *Request[P, H]) bindParams() {
 	if method == "post" {
 		err := r.ctx.ShouldBindBodyWith(params, binding.JSON)
 		if err != nil {
-			logs.Error("bind json params failed", map[string]any{
-				"error": err.Error(),
-			})
-			return
+			return errors.Wrap(err, "bind json params failed")
 		}
 	}
 
 	// 绑定url中query参数，会覆盖body中解出来的参数
 	err := r.ctx.ShouldBindQuery(params)
 	if err != nil {
-		logs.Error("bind query params failed", map[string]any{
-			"error": err.Error(),
-		})
-		return
+		return errors.Wrap(err, "bind query params failed")
 	}
 
 	r.params = params
-	b, _ := json.Marshal(params)
-	logs.Info("请求参数", map[string]any{
-		"params": string(b),
-	})
+	return nil
 }
 
-func (r *Request[P, H]) bindHeaders() {
+func (r *Request[P, H]) bindHeaders() error {
 	headers := new(H)
 	err := r.ctx.ShouldBindHeader(headers)
 	if err != nil {
-		logs.Error("bind request headers failed", map[string]any{
-			"error": err.Error(),
-		})
-		return
+		return errors.Wrap(err, "bind request headers failed")
 	}
 	r.headers = headers
+	return nil
 }
 
 func (r *Request[P, H]) GetParams() *P {

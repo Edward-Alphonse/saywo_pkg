@@ -37,8 +37,6 @@ func (l *HttpPostLoader[T]) Load() error {
 		Timeout: l.timeout,
 	}
 	resp, err := client.Post(l.postUrl, l.contentType, bytes.NewBuffer((bytesData)))
-
-	//resp, err := http.Post(l.postUrl, l.contentType, bytes.NewBuffer((bytesData)))
 	if err != nil {
 		return errors.Wrap(err, "HttpPostLoader load failed")
 	}

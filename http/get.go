@@ -40,7 +40,6 @@ func (l *HttpGetLoader[T]) Load() error {
 	}
 	resp, err := client.Get(url.String())
 
-	//resp, err := http.Get(url.String())
 	if err != nil {
 		return errors.Wrap(err, "compareFacehandler compare failed")
 	}
